@@ -20,9 +20,11 @@ boxes.forEach((box) => {
   box.addEventListener("click", () => {
     if (turn0) {
       box.innerText = "X";
+      box.classList.add("x");
       turn0 = false;
     } else {
       box.innerText = "O";
+      box.classList.add("o");
       turn0 = true;
     }
     box.disabled = true;
@@ -31,12 +33,18 @@ boxes.forEach((box) => {
   });
 });
 
-const showWinner = (winner) => {
+const showWinner = (winner, pattern) => {
   msg.innerText = `Player ${winner} wins!`;
   msg.classList.remove("hide");
+  msg.classList.add("winner-msg");
 
   boxes.forEach((box) => {
     box.disabled = true;
+  });
+
+  // Highlight winning boxes
+  pattern.forEach((idx) => {
+    boxes[idx].classList.add("winner");
   });
 };
 
@@ -48,7 +56,7 @@ const checkWinner = () => {
 
     if (pos1val != "" && pos2val != "" && pos3val != "") {
       if (pos1val == pos2val && pos2val == pos3val) {
-        showWinner(pos1val);
+        showWinner(pos1val, pattern);
         return;
       }
     }
@@ -70,6 +78,7 @@ const checkWinner = () => {
 const showDraw = () => {
   msg.innerText = "It's a draw!";
   msg.classList.remove("hide");
+  msg.classList.add("draw-msg");
 
   boxes.forEach((box) => {
     box.disabled = true;
@@ -80,16 +89,20 @@ resetBtn.addEventListener("click", () => {
   boxes.forEach((box) => {
     box.innerText = "";
     box.disabled = false;
+    box.classList.remove("x", "o", "winner");
   });
   turn0 = true;
   msg.classList.add("hide");
+  msg.classList.remove("winner-msg", "draw-msg");
 });
 
 newGameBtn.addEventListener("click", () => {
   boxes.forEach((box) => {
     box.innerText = "";
     box.disabled = false;
+    box.classList.remove("x", "o", "winner");
   });
   turn0 = true;
   msg.classList.add("hide");
+  msg.classList.remove("winner-msg", "draw-msg");
 });
