@@ -19,20 +19,7 @@ const ultimateBackBtn = document.getElementById('ultimate-back-btn');
 const ultimateMsg = document.getElementById('ultimate-msg');
 const activeBoardInfo = document.getElementById('active-board-info');
 
-// Game Selection
-gameOptions.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const game = btn.dataset.game;
-    gameSelectScreen.classList.add('hide');
-    if (game === 'classic') {
-      classicScreen.classList.remove('hide');
-      initClassicGame();
-    } else {
-      ultimateScreen.classList.remove('hide');
-      initUltimateGame();
-    }
-  });
-});
+// Game Selection - Handled below with all three games
 
 // Back buttons
 classicBackBtn.addEventListener('click', () => {
@@ -340,3 +327,419 @@ function resetUltimateGame() {
 
 ultimateResetBtn.addEventListener('click', resetUltimateGame);
 ultimateNewGameBtn.addEventListener('click', resetUltimateGame);
+
+// ==================== WEIRD ULTIMATE TIC TAC TOE ====================
+
+const weirdScreen = document.getElementById('weird-screen');
+const weirdBoard = document.getElementById('weird-board');
+const weirdResetBtn = document.getElementById('weird-reset-btn');
+const weirdNewGameBtn = document.getElementById('weird-new-game');
+const weirdBackBtn = document.getElementById('weird-back-btn');
+const weirdMsg = document.getElementById('weird-msg');
+const weirdActiveBoardInfo = document.getElementById('weird-active-board-info');
+let weirdBoards;
+let weirdBoardWinners;
+let weirdCurrentPlayer;
+let weirdActiveBoard;
+let weirdGameOver;
+let weirdFlippedCells; // Set of "boardIdx-cellIdx" that have been flipped
+let weirdCurrentAction; // 'place', 'flip', 'transpose', 'rotate'
+let weirdRotateDirection;
+let weirdMoveCount; // Track number of moves made
+
+// Game selection
+document.querySelectorAll('.game-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const game = btn.dataset.game;
+    gameSelectScreen.classList.add('hide');
+    if (game === 'classic') {
+      classicScreen.classList.remove('hide');
+      initClassicGame();
+    } else if (game === 'ultimate') {
+      ultimateScreen.classList.remove('hide');
+      initUltimateGame();
+    } else if (game === 'weird') {
+      weirdScreen.classList.remove('hide');
+      initWeirdGame();
+    }
+  });
+});
+
+weirdBackBtn.addEventListener('click', () => {
+  weirdScreen.classList.add('hide');
+  gameSelectScreen.classList.remove('hide');
+  resetWeirdGame();
+});
+
+// Action buttons
+document.querySelectorAll('.action-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    weirdCurrentAction = btn.dataset.action;
+    
+    // Show/hide rotate options
+    const rotateOptions = document.getElementById('rotate-options');
+    rotateOptions.classList.toggle('hide', weirdCurrentAction !== 'rotate');
+  });
+});
+
+// Rotate direction buttons
+document.querySelectorAll('.rotate-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rotate-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    weirdRotateDirection = btn.dataset.dir;
+  });
+});
+
+function initWeirdGame() {
+  // Create 9 mini-boards
+  weirdBoard.innerHTML = '';
+  for (let boardIdx = 0; boardIdx < 9; boardIdx++) {
+    const miniBoard = document.createElement('div');
+    miniBoard.className = 'mini-board';
+    miniBoard.dataset.board = boardIdx;
+    
+    for (let cellIdx = 0; cellIdx < 9; cellIdx++) {
+      const cell = document.createElement('button');
+      cell.className = 'mini-cell';
+      cell.dataset.board = boardIdx;
+      cell.dataset.cell = cellIdx;
+      cell.onclick = () => handleWeirdClick(boardIdx, cellIdx);
+      miniBoard.appendChild(cell);
+    }
+    
+    weirdBoard.appendChild(miniBoard);
+  }
+  
+  resetWeirdGame();
+}
+
+function handleWeirdClick(boardIdx, cellIdx) {
+  if (weirdGameOver) return;
+  
+  if (weirdCurrentAction === 'place') {
+    handleWeirdPlace(boardIdx, cellIdx);
+  } else if (weirdCurrentAction === 'flip') {
+    handleWeirdFlip(boardIdx, cellIdx);
+  } else if (weirdCurrentAction === 'transpose') {
+    handleWeirdTranspose(boardIdx);
+  } else if (weirdCurrentAction === 'rotate') {
+    handleWeirdRotate(boardIdx);
+  }
+}
+
+function handleWeirdPlace(boardIdx, cellIdx) {
+  // Check active board rule
+  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) {
+    return;
+  }
+  
+  if (weirdBoardWinners[boardIdx]) return;
+  
+  const cell = document.querySelector(
+    `#weird-board .mini-cell[data-board="${boardIdx}"][data-cell="${cellIdx}"]`
+  );
+  
+  if (cell.innerText !== '') return;
+  
+  // Place symbol (current player's symbol)
+  cell.innerText = weirdCurrentPlayer;
+  cell.classList.add(weirdCurrentPlayer.toLowerCase());
+  cell.disabled = true;
+  
+  weirdBoards[boardIdx][cellIdx] = weirdCurrentPlayer;
+  weirdMoveCount++;
+  
+  // Check mini-board win
+  checkWeirdMiniBoard(boardIdx);
+  
+  // Check game win
+  const gameWinner = checkWeirdWinner();
+  if (gameWinner) {
+    showWeirdWinner(gameWinner);
+    return;
+  }
+  
+  if (weirdBoardWinners.every(w => w !== null)) {
+    showWeirdDraw();
+    return;
+  }
+  
+  // Set next active board
+  weirdActiveBoard = cellIdx;
+  if (weirdBoardWinners[weirdActiveBoard]) {
+    weirdActiveBoard = null;
+  }
+  
+  // Switch player
+  weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
+  updateWeirdUI();
+}
+
+function handleWeirdFlip(boardIdx, cellIdx) {
+  if (weirdBoardWinners[boardIdx]) return;
+  
+  const cell = document.querySelector(
+    `#weird-board .mini-cell[data-board="${boardIdx}"][data-cell="${cellIdx}"]`
+  );
+  
+  if (cell.innerText === '') return;
+  
+  const flipKey = `${boardIdx}-${cellIdx}`;
+  if (weirdFlippedCells.has(flipKey)) return;
+  
+  // Flip the cell
+  const currentVal = cell.innerText;
+  const newVal = currentVal === 'X' ? 'O' : 'X';
+  
+  cell.innerText = newVal;
+  cell.classList.remove('x', 'o');
+  cell.classList.add(newVal.toLowerCase());
+  cell.classList.add('flipped');
+  
+  weirdBoards[boardIdx][cellIdx] = newVal;
+  weirdFlippedCells.add(flipKey);
+  
+  // Check mini-board win
+  checkWeirdMiniBoard(boardIdx);
+  
+  // Check game win
+  const gameWinner = checkWeirdWinner();
+  if (gameWinner) {
+    showWeirdWinner(gameWinner);
+    return;
+  }
+  
+  if (weirdBoardWinners.every(w => w !== null)) {
+    showWeirdDraw();
+    return;
+  }
+  
+  // Switch player
+  weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
+  updateWeirdUI();
+}
+
+function handleWeirdTranspose(boardIdx) {
+  if (weirdBoardWinners[boardIdx]) return;
+  
+  // Transpose the board
+  const board = weirdBoards[boardIdx];
+  const newBoard = Array(9);
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      newBoard[j * 3 + i] = board[i * 3 + j];
+    }
+  }
+  weirdBoards[boardIdx] = newBoard;
+  
+  // Update UI
+  updateWeirdBoardUI(boardIdx);
+  
+  // Check mini-board win
+  checkWeirdMiniBoard(boardIdx);
+  
+  // Check game win
+  const gameWinner = checkWeirdWinner();
+  if (gameWinner) {
+    showWeirdWinner(gameWinner);
+    return;
+  }
+  
+  // Switch player
+  weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
+  updateWeirdUI();
+}
+
+function handleWeirdRotate(boardIdx) {
+  if (weirdBoardWinners[boardIdx]) return;
+  
+  // Rotate the board
+  const board = weirdBoards[boardIdx];
+  const newBoard = Array(9);
+  if (weirdRotateDirection === 'cw') {
+    // Clockwise: (i,j) -> (j, 2-i)
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        newBoard[j * 3 + (2 - i)] = board[i * 3 + j];
+      }
+    }
+  } else {
+    // Counter-clockwise: (i,j) -> (2-j, i)
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        newBoard[(2 - j) * 3 + i] = board[i * 3 + j];
+      }
+    }
+  }
+  weirdBoards[boardIdx] = newBoard;
+  
+  // Update UI
+  updateWeirdBoardUI(boardIdx);
+  
+  // Check mini-board win
+  checkWeirdMiniBoard(boardIdx);
+  
+  // Check game win
+  const gameWinner = checkWeirdWinner();
+  if (gameWinner) {
+    showWeirdWinner(gameWinner);
+    return;
+  }
+  
+  // Switch player
+  weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
+  updateWeirdUI();
+}
+
+function updateWeirdBoardUI(boardIdx) {
+  const board = weirdBoards[boardIdx];
+  for (let i = 0; i < 9; i++) {
+    const cell = document.querySelector(
+      `#weird-board .mini-cell[data-board="${boardIdx}"][data-cell="${i}"]`
+    );
+    cell.innerText = board[i] || '';
+    cell.classList.remove('x', 'o');
+    if (board[i]) {
+      cell.classList.add(board[i].toLowerCase());
+      cell.disabled = true;
+    } else {
+      cell.disabled = false;
+    }
+  }
+}
+
+function checkWeirdMiniBoard(boardIdx) {
+  const board = weirdBoards[boardIdx];
+  for (const pattern of ultimateWinPatterns) {
+    const [a, b, c] = pattern;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      weirdBoardWinners[boardIdx] = board[a];
+      const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
+      miniBoard.classList.add('won');
+      miniBoard.dataset.winner = board[a];
+      miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+      return;
+    }
+  }
+  
+  if (board.every(c => c !== null)) {
+    weirdBoardWinners[boardIdx] = 'draw';
+    const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
+    miniBoard.classList.add('won', 'draw');
+    miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+  }
+}
+
+function checkWeirdWinner() {
+  for (const pattern of ultimateWinPatterns) {
+    const [a, b, c] = pattern;
+    if (
+      weirdBoardWinners[a] &&
+      weirdBoardWinners[a] !== 'draw' &&
+      weirdBoardWinners[a] === weirdBoardWinners[b] &&
+      weirdBoardWinners[a] === weirdBoardWinners[c]
+    ) {
+      return { winner: weirdBoardWinners[a], pattern };
+    }
+  }
+  return null;
+}
+
+function updateWeirdUI() {
+  document.querySelectorAll('#weird-board .mini-board').forEach((board, idx) => {
+    board.classList.remove('active');
+    if (!weirdBoardWinners[idx]) {
+      if (weirdActiveBoard === null || weirdActiveBoard === idx) {
+        board.classList.add('active');
+      }
+    }
+  });
+  
+  if (weirdGameOver) {
+    weirdActiveBoardInfo.textContent = '';
+  } else if (weirdActiveBoard === null) {
+    weirdActiveBoardInfo.textContent = `Player ${weirdCurrentPlayer}'s turn - Play anywhere`;
+  } else {
+    weirdActiveBoardInfo.textContent = `Player ${weirdCurrentPlayer}'s turn - Board ${weirdActiveBoard + 1}`;
+  }
+  
+  // Enable/disable action buttons based on game state
+  const hasMoves = weirdMoveCount > 0;
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    const action = btn.dataset.action;
+    if (action !== 'place') {
+      btn.disabled = !hasMoves || weirdGameOver;
+      btn.style.opacity = (!hasMoves || weirdGameOver) ? '0.5' : '1';
+      btn.style.cursor = (!hasMoves || weirdGameOver) ? 'not-allowed' : 'pointer';
+    }
+  });
+}
+
+function showWeirdWinner(winner, pattern) {
+  weirdGameOver = true;
+  weirdMsg.innerText = `Player ${winner} wins the game!`;
+  weirdMsg.classList.remove('hide');
+  weirdMsg.classList.add('winner-msg');
+  weirdActiveBoardInfo.textContent = '';
+  document.querySelectorAll('#weird-board .mini-cell').forEach(c => c.disabled = true);
+  document.querySelectorAll('#weird-board .mini-board').forEach(b => b.classList.remove('active'));
+  
+  pattern.forEach(idx => {
+    const board = document.querySelector(`#weird-board .mini-board[data-board="${idx}"]`);
+    board.style.boxShadow = '0 0 0 4px #10b981, 0 0 20px rgba(16, 185, 129, 0.5)';
+  });
+}
+
+function showWeirdDraw() {
+  weirdGameOver = true;
+  weirdMsg.innerText = "It's a draw!";
+  weirdMsg.classList.remove('hide');
+  weirdMsg.classList.add('draw-msg');
+  weirdActiveBoardInfo.textContent = '';
+  document.querySelectorAll('#weird-board .mini-cell').forEach(c => c.disabled = true);
+  document.querySelectorAll('#weird-board .mini-board').forEach(b => b.classList.remove('active'));
+}
+
+function resetWeirdGame() {
+  weirdBoards = Array(9).fill(null).map(() => Array(9).fill(null));
+  weirdBoardWinners = Array(9).fill(null);
+  weirdCurrentPlayer = 'X';
+  weirdActiveBoard = null;
+  weirdGameOver = false;
+  weirdFlippedCells = new Set();
+  weirdCurrentAction = 'place';
+  weirdRotateDirection = 'cw';
+  weirdMoveCount = 0;
+  
+  document.querySelectorAll('#weird-board .mini-cell').forEach(cell => {
+    cell.innerText = '';
+    cell.disabled = false;
+    cell.classList.remove('x', 'o', 'flipped');
+  });
+  
+  document.querySelectorAll('#weird-board .mini-board').forEach(board => {
+    board.classList.remove('won', 'draw', 'active');
+    board.removeAttribute('data-winner');
+    board.style.boxShadow = '';
+  });
+  
+  weirdMsg.classList.add('hide');
+  weirdMsg.classList.remove('winner-msg', 'draw-msg');
+  
+  // Reset action buttons
+  document.querySelectorAll('.action-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === 0);
+  });
+  document.getElementById('rotate-options').classList.add('hide');
+  document.querySelectorAll('.rotate-opt').forEach((b, i) => {
+    b.classList.toggle('active', i === 0);
+  });
+  
+  updateWeirdUI();
+}
+
+weirdResetBtn.addEventListener('click', resetWeirdGame);
+weirdNewGameBtn.addEventListener('click', resetWeirdGame);

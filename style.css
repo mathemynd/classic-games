@@ -64,6 +64,113 @@ h1 {
   display: none !important;
 }
 
+/* Weird Game Controls */
+.weird-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 90px;
+}
+
+.action-btn:hover {
+  border-color: #667eea;
+  background: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.action-btn.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.action-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.action-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: "Fredoka", sans-serif;
+}
+
+.rotate-options {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  width: 100%;
+}
+
+.rotate-options.hide {
+  display: none !important;
+}
+
+.rotate-opt {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.rotate-opt:hover {
+  border-color: #667eea;
+  background: #f3f4f6;
+}
+
+.rotate-opt.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.mini-cell.flipped {
+  position: relative;
+}
+
+.mini-cell.flipped::after {
+  content: "↻";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  color: #f59e0b;
+  font-weight: bold;
+}
+
 .screen {
   width: 100%;
   min-height: 100vh;
@@ -274,7 +381,10 @@ h1 {
 #back-btn,
 #ultimate-new-game,
 #ultimate-reset-btn,
-#ultimate-back-btn {
+#ultimate-back-btn,
+#weird-new-game,
+#weird-reset-btn,
+#weird-back-btn {
   padding: 0.75rem 2.2rem;
   font-size: 1.05rem;
   font-weight: 500;
@@ -292,7 +402,10 @@ h1 {
 #back-btn:hover,
 #ultimate-new-game:hover,
 #ultimate-reset-btn:hover,
-#ultimate-back-btn:hover {
+#ultimate-back-btn:hover,
+#weird-new-game:hover,
+#weird-reset-btn:hover,
+#weird-back-btn:hover {
   background: #e8e8e8;
   border-color: #666;
 }
@@ -302,7 +415,10 @@ h1 {
 #back-btn:active,
 #ultimate-new-game:active,
 #ultimate-reset-btn:active,
-#ultimate-back-btn:active {
+#ultimate-back-btn:active,
+#weird-new-game:active,
+#weird-reset-btn:active,
+#weird-back-btn:active {
   background: #dcdcdc;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
