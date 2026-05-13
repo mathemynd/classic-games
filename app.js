@@ -49,10 +49,31 @@ const checkWinner = () => {
     if (pos1val != "" && pos2val != "" && pos3val != "") {
       if (pos1val == pos2val && pos2val == pos3val) {
         showWinner(pos1val);
-        break;
+        return;
       }
     }
   }
+
+  // Check for draw
+  let allFilled = true;
+  boxes.forEach((box) => {
+    if (box.innerText === "") {
+      allFilled = false;
+    }
+  });
+
+  if (allFilled) {
+    showDraw();
+  }
+};
+
+const showDraw = () => {
+  msg.innerText = "It's a draw!";
+  msg.classList.remove("hide");
+
+  boxes.forEach((box) => {
+    box.disabled = true;
+  });
 };
 
 resetBtn.addEventListener("click", () => {
@@ -61,6 +82,7 @@ resetBtn.addEventListener("click", () => {
     box.disabled = false;
   });
   turn0 = true;
+  msg.classList.add("hide");
 });
 
 newGameBtn.addEventListener("click", () => {
