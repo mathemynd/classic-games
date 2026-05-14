@@ -30,3 +30,12 @@ Forced/free board rules carry over from Ultimate. Flip uses the flipped cell to 
 
 1. Clone the repo: `git clone https://github.com/mathemynd/classic-games.git`
 2. Open `index.html` in your browser
+
+## Tests
+
+```bash
+npm install
+npm test
+```
+
+Tests use [Vitest](https://vitest.dev/) with jsdom. See `tests/` for specs.
