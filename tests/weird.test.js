@@ -645,9 +645,12 @@ describe('Weird Ultimate Tic Tac Toe', () => {
     clickCell(0, 1); // X → O forced to 1
     clickCell(1, 0); // O → X forced to 0
 
-    // Transpose: gives free move
+    // Transpose: gives free move, but only boards with 2+ pieces are active
     selectAction('transpose');
-    clickCell(0, 0); // X transposes board 0
+    clickCell(0, 0); // O transposes board 0 → free move
+
+    // Switch to place to verify all non-won boards are active during free move
+    selectAction('place');
     for (let i = 0; i < 9; i++) {
       expect(miniBoard(i).classList.contains('active')).toBe(true);
     }

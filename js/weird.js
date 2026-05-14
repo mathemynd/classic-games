@@ -346,10 +346,28 @@ function updateWeirdCellStates() {
   });
 }
 
+function isBoardValidForAction(boardIdx) {
+  if (weirdBoardWinners[boardIdx]) return false;
+  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) return false;
+
+  const board = weirdBoards[boardIdx];
+  switch (weirdCurrentAction) {
+    case 'place':
+      return board.some(cell => cell === null);
+    case 'flip':
+      return board.some((cell, ci) => cell !== null && !weirdFlippedCells.has(`${boardIdx}-${ci}`));
+    case 'transpose':
+    case 'rotate':
+      return board.filter(cell => cell !== null).length >= 2;
+    default:
+      return true;
+  }
+}
+
 function updateWeirdUI() {
   document.querySelectorAll('#weird-board .mini-board').forEach((board, idx) => {
     board.classList.remove('active');
-    if (!weirdBoardWinners[idx] && (weirdActiveBoard === null || weirdActiveBoard === idx)) {
+    if (isBoardValidForAction(idx)) {
       board.classList.add('active');
     }
   });
