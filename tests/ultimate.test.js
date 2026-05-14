@@ -7,7 +7,9 @@ const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
 function setupDOM() {
   document.body.innerHTML = '';
   document.documentElement.innerHTML = html.match(/<html[^>]*>([\s\S]*)<\/html>/i)?.[1] || '';
-  const script = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf-8');
+  const script = ['js/common.js', 'js/classic.js', 'js/ultimate.js', 'js/weird.js']
+    .map(f => fs.readFileSync(path.resolve(__dirname, '..', f), 'utf-8'))
+    .join('\n');
   eval(script);
 }
 
@@ -467,6 +469,51 @@ describe('Ultimate Tic Tac Toe', () => {
     clickCell(4, 2);
 
     expect(miniBoard(4).getAttribute('data-winner')).toBe('X');
+  });
+
+  it('X wins the full game by winning 3 boards in a row', () => {
+    // X wins boards 0, 1, 2 (top row) via relay pattern.
+    // Relay: X plays in target board, sending O to a helper board.
+    // O plays cell N in the helper board, sending X back to target board N.
+
+    // --- X wins board 0 (cells 0, 1, 2) via relay through B1, B2 ---
+    clickCell(0, 1); // X(0,1) → O to 1
+    clickCell(1, 0); // O(1,0) → X to 0
+    clickCell(0, 2); // X(0,2) → O to 2
+    clickCell(2, 0); // O(2,0) → X to 0
+    clickCell(0, 0); // X(0,0) → X wins B0 [0,1,2]. O to 0(won) → free.
+
+    expect(miniBoard(0).classList.contains('won')).toBe(true);
+    expect(miniBoard(0).dataset.winner).toBe('X');
+    expect(msg().classList.contains('hide')).toBe(true); // game not over yet
+
+    // --- X wins board 1 (cells 3, 4, 5) via relay through B3, B5, B4 ---
+    clickCell(3, 1); // O(3,1) → X to 1
+    clickCell(1, 5); // X(1,5) → O to 5
+    clickCell(5, 1); // O(5,1) → X to 1
+    clickCell(1, 4); // X(1,4) → O to 4
+    clickCell(4, 1); // O(4,1) → X to 1
+    clickCell(1, 3); // X(1,3) → X wins B1 [3,4,5]. O to 3.
+
+    expect(miniBoard(1).classList.contains('won')).toBe(true);
+    expect(miniBoard(1).dataset.winner).toBe('X');
+    expect(msg().classList.contains('hide')).toBe(true); // game not over yet
+
+    // --- X wins board 2 (cells 3, 4, 5) via relay through B3→B5→B4 ---
+    clickCell(3, 2); // O(3,2) → X to 2
+    clickCell(2, 5); // X(2,5) → O to 5
+    clickCell(5, 2); // O(5,2) → X to 2
+    clickCell(2, 4); // X(2,4) → O to 4
+    clickCell(4, 2); // O(4,2) → X to 2
+    clickCell(2, 3); // X(2,3) → X wins B2 [3,4,5]. Game over!
+
+    expect(miniBoard(2).classList.contains('won')).toBe(true);
+    expect(miniBoard(2).dataset.winner).toBe('X');
+
+    // X wins the game: boards 0, 1, 2 = top row
+    expect(msg().classList.contains('hide')).toBe(false);
+    expect(msg().innerText).toContain('X');
+    expect(msg().classList.contains('winner-msg')).toBe(true);
   });
 
   it('game does not end after winning just one board', () => {

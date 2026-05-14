@@ -7,8 +7,9 @@ const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
 function setupDOM() {
   document.body.innerHTML = '';
   document.documentElement.innerHTML = html.match(/<html[^>]*>([\s\S]*)<\/html>/i)?.[1] || '';
-  // Load app.js by evaluating it
-  const script = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf-8');
+  const script = ['js/common.js', 'js/classic.js', 'js/ultimate.js', 'js/weird.js']
+    .map(f => fs.readFileSync(path.resolve(__dirname, '..', f), 'utf-8'))
+    .join('\n');
   eval(script);
 }
 

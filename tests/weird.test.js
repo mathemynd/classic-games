@@ -7,7 +7,9 @@ const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
 function setupDOM() {
   document.body.innerHTML = '';
   document.documentElement.innerHTML = html.match(/<html[^>]*>([\s\S]*)<\/html>/i)?.[1] || '';
-  const script = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf-8');
+  const script = ['js/common.js', 'js/classic.js', 'js/ultimate.js', 'js/weird.js']
+    .map(f => fs.readFileSync(path.resolve(__dirname, '..', f), 'utf-8'))
+    .join('\n');
   eval(script);
 }
 
@@ -844,6 +846,108 @@ describe('Weird Ultimate Tic Tac Toe', () => {
     expect(document.getElementById('ultimate-screen').classList.contains('hide')).toBe(false);
     expect(document.getElementById('weird-screen').classList.contains('hide')).toBe(true);
     expect(document.getElementById('classic-screen').classList.contains('hide')).toBe(true);
+  });
+
+  it('flipped state follows piece after transpose', () => {
+    // Place X at cell 1, flip it, then transpose
+    clickCell(0, 1); // X at cell 1 → O to 1
+    clickCell(1, 0); // O → X to 0
+    // Flip cell 1 in board 0
+    selectAction('flip');
+    clickCell(0, 1); // X flips cell 1 (X→O) → O to 1
+
+    expect(cell(0, 1).classList.contains('flipped')).toBe(true);
+
+    // Get 2 pieces for transpose: O places in board 1
+    clickCell(1, 0); // O → X to 0. Board 0: cell 1=O(flipped)
+    // X places cell 4 in board 0
+    selectAction('place');
+    clickCell(0, 4); // X at cell 4 → O to 4
+    clickCell(4, 0); // O → X to 0
+
+    // Board 0: cell 1=O(flipped), cell 4=X. Transpose it.
+    selectAction('transpose');
+    clickCell(0, 0); // X transposes board 0
+
+    // cell 1 = (0,1) → (1,0) = cell 3 after transpose
+    // Flipped state should follow to cell 3
+    expect(cell(0, 3).classList.contains('flipped')).toBe(true);
+    expect(cell(0, 1).classList.contains('flipped')).toBe(false);
+    // Cell 3 should not be flippable again
+    expect(cellText(0, 3)).toBe('O');
+  });
+
+  it('flipped state follows piece after rotate', () => {
+    clickCell(0, 1); // X at cell 1 → O to 1
+    clickCell(1, 0); // O → X to 0
+    selectAction('flip');
+    clickCell(0, 1); // X flips cell 1 (X→O) → O to 1
+
+    expect(cell(0, 1).classList.contains('flipped')).toBe(true);
+
+    clickCell(1, 0); // O → X to 0
+    selectAction('place');
+    clickCell(0, 4); // X at cell 4 → O to 4
+    clickCell(4, 0); // O → X to 0
+
+    // Board 0: cell 1=O(flipped), cell 4=X. Rotate CW.
+    selectAction('rotate');
+    clickCell(0, 0); // X rotates board 0 CW
+
+    // CW: cell 1 = (0,1) → (1,2) = cell 5
+    expect(cell(0, 5).classList.contains('flipped')).toBe(true);
+    expect(cell(0, 1).classList.contains('flipped')).toBe(false);
+  });
+
+  it('flipped cell cannot be re-flipped after transpose moves it', () => {
+    clickCell(0, 1); // X at cell 1 → O to 1
+    clickCell(1, 0); // O → X to 0
+    selectAction('flip');
+    clickCell(0, 1); // X flips cell 1 → O to 1
+
+    clickCell(1, 0); // O → X to 0
+    selectAction('place');
+    clickCell(0, 4); // X at cell 4 → O to 4
+    clickCell(4, 0); // O → X to 0
+
+    // Transpose: cell 1 moves to cell 3
+    selectAction('transpose');
+    clickCell(0, 0); // X transposes → free move
+
+    // O tries to flip cell 3 (the moved flipped piece) — should be rejected
+    selectAction('flip');
+    clickCell(0, 3);
+    expect(cellText(0, 3)).toBe('O'); // unchanged — still O, not flipped to X
+    expect(info().textContent).toContain('Player O'); // turn preserved
+  });
+
+  it('X wins the full game via place actions', () => {
+    // Same relay strategy as Ultimate: X wins boards 0, 1, 2 (top row).
+
+    // --- X wins board 0 (cells 0, 1, 2) ---
+    clickCell(0, 1); clickCell(1, 0);
+    clickCell(0, 2); clickCell(2, 0);
+    clickCell(0, 0); // X wins B0. O free move.
+
+    expect(miniBoard(0).classList.contains('won')).toBe(true);
+    expect(miniBoard(0).dataset.winner).toBe('X');
+
+    // --- X wins board 1 (cells 3, 4, 5) ---
+    clickCell(3, 1); clickCell(1, 5);
+    clickCell(5, 1); clickCell(1, 4);
+    clickCell(4, 1); clickCell(1, 3); // X wins B1. O to 3.
+
+    expect(miniBoard(1).classList.contains('won')).toBe(true);
+
+    // --- X wins board 2 (cells 3, 4, 5) ---
+    clickCell(3, 2); clickCell(2, 5);
+    clickCell(5, 2); clickCell(2, 4);
+    clickCell(4, 2); clickCell(2, 3); // X wins B2. Game over!
+
+    expect(miniBoard(2).dataset.winner).toBe('X');
+    expect(msg().classList.contains('hide')).toBe(false);
+    expect(msg().innerText).toContain('X');
+    expect(msg().classList.contains('winner-msg')).toBe(true);
   });
 
   it('multiple flips on different cells in same board work', () => {
