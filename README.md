@@ -1,20 +1,32 @@
-# 🕹️ Tic-Tac-Toe
+# Classic Games
 
-A simple, responsive Tic-Tac-Toe game built with Vanilla JavaScript, HTML5, and CSS3.
+A collection of Tic-Tac-Toe variants built with vanilla JavaScript, HTML5, and CSS3.
 
-## ✨ Features
+## Games
 
-- **Win/Draw Logic:** Automatically detects game endings.
-- **Responsive Design:** Works on mobile and desktop.
-- **Interactive UI:** Hover effects and status updates.
+### Classic Tic Tac Toe
+Standard 3x3 grid. Get 3 in a row to win.
 
-## 🛠️ Built With
+### Ultimate Tic Tac Toe
+9 mini-boards in a 3x3 meta-grid. Your move's cell position dictates which board your opponent plays next. Win 3 mini-boards in a row to win the game.
 
-- **HTML5** - Structure
-- **CSS3** - Styling & Grid Layout
-- **JavaScript** - Game Logic
+### Weird Ultimate Tic Tac Toe
+Ultimate TTT with 4 move types per turn:
 
-## 📖 How to Run Locally
+- **Place** — standard placement in an empty cell
+- **Flip** — swap an opponent's piece to yours (each cell can only be flipped once per game)
+- **Transpose** — matrix transpose a mini-board along its diagonal
+- **Rotate** — rotate a mini-board 90 degrees clockwise or counter-clockwise
+
+Forced/free board rules carry over from Ultimate. Flip uses the flipped cell to determine the next forced board. Transpose and Rotate grant a free move.
+
+## Built With
+
+- **HTML5** — structure
+- **CSS3** — styling, grid layout, responsive design
+- **JavaScript** — game logic, DOM manipulation
+
+## How to Run
 
 1. Clone the repo: `git clone https://github.com/mathemynd/classic-games.git`
-2. Open `index.html` in your browser (or use Live Server in VS Code)
+2. Open `index.html` in your browser

@@ -54,7 +54,7 @@ function initClassicGame() {
 function handleClassicClick(idx) {
   const box = classicBoxes[idx];
   if (box.innerText !== '' || box.disabled) return;
-  
+
   if (classicTurn0) {
     box.innerText = 'X';
     box.classList.add('x');
@@ -73,19 +73,19 @@ function checkClassicWinner() {
     let pos1 = classicBoxes[pattern[0]].innerText;
     let pos2 = classicBoxes[pattern[1]].innerText;
     let pos3 = classicBoxes[pattern[2]].innerText;
-    
+
     if (pos1 && pos1 === pos2 && pos2 === pos3) {
       showClassicWinner(pos1, pattern);
       return;
     }
   }
-  
+
   // Check draw
   let allFilled = true;
   classicBoxes.forEach(box => {
     if (box.innerText === '') allFilled = false;
   });
-  
+
   if (allFilled) {
     showClassicDraw();
   }
@@ -141,7 +141,7 @@ function initUltimateGame() {
     const miniBoard = document.createElement('div');
     miniBoard.className = 'mini-board';
     miniBoard.dataset.board = boardIdx;
-    
+
     for (let cellIdx = 0; cellIdx < 9; cellIdx++) {
       const cell = document.createElement('button');
       cell.className = 'mini-cell';
@@ -150,39 +150,39 @@ function initUltimateGame() {
       cell.onclick = () => handleUltimateClick(boardIdx, cellIdx);
       miniBoard.appendChild(cell);
     }
-    
+
     ultimateBoard.appendChild(miniBoard);
   }
-  
+
   resetUltimateGame();
 }
 
 function handleUltimateClick(boardIdx, cellIdx) {
   if (ultimateGameOver) return;
-  
+
   // Check if this board is active
   if (ultimateActiveBoard !== null && ultimateActiveBoard !== boardIdx) {
     return;
   }
-  
+
   // Check if board is already won
   if (ultimateBoardWinners[boardIdx]) {
     return;
   }
-  
+
   const cell = document.querySelector(
     `.mini-cell[data-board="${boardIdx}"][data-cell="${cellIdx}"]`
   );
-  
+
   if (cell.innerText !== '') return;
-  
+
   // Make move
   cell.innerText = ultimateCurrentPlayer;
   cell.classList.add(ultimateCurrentPlayer.toLowerCase());
   cell.disabled = true;
-  
+
   ultimateBoards[boardIdx][cellIdx] = ultimateCurrentPlayer;
-  
+
   // Check if this mini-board is won
   const boardWinner = checkMiniBoardWinner(boardIdx);
   if (boardWinner) {
@@ -190,7 +190,7 @@ function handleUltimateClick(boardIdx, cellIdx) {
     const miniBoard = document.querySelector(`.mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won');
     miniBoard.dataset.winner = boardWinner;
-    
+
     // Disable all cells in won board
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
   } else if (ultimateBoards[boardIdx].every(c => c !== null)) {
@@ -200,30 +200,30 @@ function handleUltimateClick(boardIdx, cellIdx) {
     miniBoard.classList.add('won', 'draw');
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
   }
-  
+
   // Check for overall winner
   const result = checkUltimateWinner();
   if (result) {
     showUltimateWinner(result.winner, result.pattern);
     return;
   }
-  
+
   // Check for draw
   if (ultimateBoardWinners.every(w => w !== null)) {
     showUltimateDraw();
     return;
   }
-  
+
   // Set next active board
   ultimateActiveBoard = cellIdx;
   if (ultimateBoardWinners[ultimateActiveBoard]) {
     // Board is won/draw, can play anywhere
     ultimateActiveBoard = null;
   }
-  
+
   // Switch player
   ultimateCurrentPlayer = ultimateCurrentPlayer === 'X' ? 'O' : 'X';
-  
+
   updateUltimateUI();
 }
 
@@ -263,7 +263,7 @@ function updateUltimateUI() {
       }
     }
   });
-  
+
   // Update info text
   if (ultimateGameOver) {
     activeBoardInfo.textContent = '';
@@ -282,7 +282,7 @@ function showUltimateWinner(winner, pattern) {
   activeBoardInfo.textContent = '';
   document.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
   document.querySelectorAll('.mini-board').forEach(b => b.classList.remove('active'));
-  
+
   // Highlight winning boards
   pattern.forEach(idx => {
     const board = document.querySelector(`.mini-board[data-board="${idx}"]`);
@@ -306,22 +306,22 @@ function resetUltimateGame() {
   ultimateCurrentPlayer = 'X';
   ultimateActiveBoard = null;
   ultimateGameOver = false;
-  
+
   document.querySelectorAll('.mini-cell').forEach(cell => {
     cell.innerText = '';
     cell.disabled = false;
     cell.classList.remove('x', 'o');
   });
-  
+
   document.querySelectorAll('.mini-board').forEach(board => {
     board.classList.remove('won', 'draw', 'active');
     board.removeAttribute('data-winner');
     board.style.boxShadow = '';
   });
-  
+
   ultimateMsg.classList.add('hide');
   ultimateMsg.classList.remove('winner-msg', 'draw-msg');
-  
+
   updateUltimateUI();
 }
 
@@ -345,7 +345,6 @@ let weirdGameOver;
 let weirdFlippedCells; // Set of "boardIdx-cellIdx" that have been flipped
 let weirdCurrentAction; // 'place', 'flip', 'transpose', 'rotate'
 let weirdRotateDirection;
-let weirdMoveCount; // Track number of moves made
 
 // Game selection
 document.querySelectorAll('.game-option').forEach(btn => {
@@ -377,10 +376,13 @@ document.querySelectorAll('.action-btn').forEach(btn => {
     document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     weirdCurrentAction = btn.dataset.action;
-    
+
     // Show/hide rotate options
     const rotateOptions = document.getElementById('rotate-options');
     rotateOptions.classList.toggle('hide', weirdCurrentAction !== 'rotate');
+
+    weirdBoard.dataset.action = weirdCurrentAction;
+    updateWeirdUI();
   });
 });
 
@@ -400,7 +402,7 @@ function initWeirdGame() {
     const miniBoard = document.createElement('div');
     miniBoard.className = 'mini-board';
     miniBoard.dataset.board = boardIdx;
-    
+
     for (let cellIdx = 0; cellIdx < 9; cellIdx++) {
       const cell = document.createElement('button');
       cell.className = 'mini-cell';
@@ -409,16 +411,16 @@ function initWeirdGame() {
       cell.onclick = () => handleWeirdClick(boardIdx, cellIdx);
       miniBoard.appendChild(cell);
     }
-    
+
     weirdBoard.appendChild(miniBoard);
   }
-  
+
   resetWeirdGame();
 }
 
 function handleWeirdClick(boardIdx, cellIdx) {
   if (weirdGameOver) return;
-  
+
   if (weirdCurrentAction === 'place') {
     handleWeirdPlace(boardIdx, cellIdx);
   } else if (weirdCurrentAction === 'flip') {
@@ -435,44 +437,42 @@ function handleWeirdPlace(boardIdx, cellIdx) {
   if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) {
     return;
   }
-  
+
   if (weirdBoardWinners[boardIdx]) return;
-  
+
   const cell = document.querySelector(
     `#weird-board .mini-cell[data-board="${boardIdx}"][data-cell="${cellIdx}"]`
   );
-  
+
   if (cell.innerText !== '') return;
-  
+
   // Place symbol (current player's symbol)
   cell.innerText = weirdCurrentPlayer;
   cell.classList.add(weirdCurrentPlayer.toLowerCase());
-  cell.disabled = true;
-  
+
   weirdBoards[boardIdx][cellIdx] = weirdCurrentPlayer;
-  weirdMoveCount++;
-  
+
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
-  
+
   // Check game win
-  const gameWinner = checkWeirdWinner();
-  if (gameWinner) {
-    showWeirdWinner(gameWinner);
+  const gameResult = checkWeirdWinner();
+  if (gameResult) {
+    showWeirdWinner(gameResult.winner, gameResult.pattern);
     return;
   }
-  
+
   if (weirdBoardWinners.every(w => w !== null)) {
     showWeirdDraw();
     return;
   }
-  
+
   // Set next active board
   weirdActiveBoard = cellIdx;
   if (weirdBoardWinners[weirdActiveBoard]) {
     weirdActiveBoard = null;
   }
-  
+
   // Switch player
   weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
   updateWeirdUI();
@@ -480,43 +480,54 @@ function handleWeirdPlace(boardIdx, cellIdx) {
 
 function handleWeirdFlip(boardIdx, cellIdx) {
   if (weirdBoardWinners[boardIdx]) return;
-  
+
+  // Check active board rule
+  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) {
+    return;
+  }
+
   const cell = document.querySelector(
     `#weird-board .mini-cell[data-board="${boardIdx}"][data-cell="${cellIdx}"]`
   );
-  
+
   if (cell.innerText === '') return;
-  
+
   const flipKey = `${boardIdx}-${cellIdx}`;
   if (weirdFlippedCells.has(flipKey)) return;
-  
+
   // Flip the cell
   const currentVal = cell.innerText;
   const newVal = currentVal === 'X' ? 'O' : 'X';
-  
+
   cell.innerText = newVal;
   cell.classList.remove('x', 'o');
   cell.classList.add(newVal.toLowerCase());
   cell.classList.add('flipped');
-  
+
   weirdBoards[boardIdx][cellIdx] = newVal;
   weirdFlippedCells.add(flipKey);
-  
+
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
-  
+
   // Check game win
-  const gameWinner = checkWeirdWinner();
-  if (gameWinner) {
-    showWeirdWinner(gameWinner);
+  const gameResult = checkWeirdWinner();
+  if (gameResult) {
+    showWeirdWinner(gameResult.winner, gameResult.pattern);
     return;
   }
-  
+
   if (weirdBoardWinners.every(w => w !== null)) {
     showWeirdDraw();
     return;
   }
-  
+
+  // Flipped cell determines next forced board
+  weirdActiveBoard = cellIdx;
+  if (weirdBoardWinners[weirdActiveBoard]) {
+    weirdActiveBoard = null;
+  }
+
   // Switch player
   weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
   updateWeirdUI();
@@ -524,7 +535,12 @@ function handleWeirdFlip(boardIdx, cellIdx) {
 
 function handleWeirdTranspose(boardIdx) {
   if (weirdBoardWinners[boardIdx]) return;
-  
+
+  // Check active board rule
+  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) {
+    return;
+  }
+
   // Transpose the board
   const board = weirdBoards[boardIdx];
   const newBoard = Array(9);
@@ -534,20 +550,28 @@ function handleWeirdTranspose(boardIdx) {
     }
   }
   weirdBoards[boardIdx] = newBoard;
-  
+
   // Update UI
   updateWeirdBoardUI(boardIdx);
-  
+
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
-  
+
   // Check game win
-  const gameWinner = checkWeirdWinner();
-  if (gameWinner) {
-    showWeirdWinner(gameWinner);
+  const gameResult = checkWeirdWinner();
+  if (gameResult) {
+    showWeirdWinner(gameResult.winner, gameResult.pattern);
     return;
   }
-  
+
+  if (weirdBoardWinners.every(w => w !== null)) {
+    showWeirdDraw();
+    return;
+  }
+
+  // No cell targeted — next player plays anywhere
+  weirdActiveBoard = null;
+
   // Switch player
   weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
   updateWeirdUI();
@@ -555,7 +579,11 @@ function handleWeirdTranspose(boardIdx) {
 
 function handleWeirdRotate(boardIdx) {
   if (weirdBoardWinners[boardIdx]) return;
-  
+
+  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) {
+    return;
+  }
+
   // Rotate the board
   const board = weirdBoards[boardIdx];
   const newBoard = Array(9);
@@ -575,20 +603,28 @@ function handleWeirdRotate(boardIdx) {
     }
   }
   weirdBoards[boardIdx] = newBoard;
-  
+
   // Update UI
   updateWeirdBoardUI(boardIdx);
-  
+
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
-  
+
   // Check game win
-  const gameWinner = checkWeirdWinner();
-  if (gameWinner) {
-    showWeirdWinner(gameWinner);
+  const gameResult = checkWeirdWinner();
+  if (gameResult) {
+    showWeirdWinner(gameResult.winner, gameResult.pattern);
     return;
   }
-  
+
+  if (weirdBoardWinners.every(w => w !== null)) {
+    showWeirdDraw();
+    return;
+  }
+
+  // No cell targeted — next player plays anywhere
+  weirdActiveBoard = null;
+
   // Switch player
   weirdCurrentPlayer = weirdCurrentPlayer === 'X' ? 'O' : 'X';
   updateWeirdUI();
@@ -604,9 +640,6 @@ function updateWeirdBoardUI(boardIdx) {
     cell.classList.remove('x', 'o');
     if (board[i]) {
       cell.classList.add(board[i].toLowerCase());
-      cell.disabled = true;
-    } else {
-      cell.disabled = false;
     }
   }
 }
@@ -624,7 +657,7 @@ function checkWeirdMiniBoard(boardIdx) {
       return;
     }
   }
-  
+
   if (board.every(c => c !== null)) {
     weirdBoardWinners[boardIdx] = 'draw';
     const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
@@ -657,7 +690,7 @@ function updateWeirdUI() {
       }
     }
   });
-  
+
   if (weirdGameOver) {
     weirdActiveBoardInfo.textContent = '';
   } else if (weirdActiveBoard === null) {
@@ -665,16 +698,69 @@ function updateWeirdUI() {
   } else {
     weirdActiveBoardInfo.textContent = `Player ${weirdCurrentPlayer}'s turn - Board ${weirdActiveBoard + 1}`;
   }
-  
-  // Enable/disable action buttons based on game state
-  const hasMoves = weirdMoveCount > 0;
+
+  // Enable/disable action buttons based on what's valid in the target board(s)
+  const boardsToCheck = weirdActiveBoard !== null
+    ? [weirdActiveBoard]
+    : Array.from({length: 9}, (_, i) => i).filter(i => !weirdBoardWinners[i]);
+
+  const canPlace = !weirdGameOver && boardsToCheck.some(b =>
+    weirdBoards[b].some(cell => cell === null)
+  );
+  const canFlip = !weirdGameOver && boardsToCheck.some(b =>
+    weirdBoards[b].some((cell, ci) => cell !== null && !weirdFlippedCells.has(`${b}-${ci}`))
+  );
+  const canTranspose = !weirdGameOver && boardsToCheck.some(b =>
+    weirdBoards[b].filter(cell => cell !== null).length >= 2
+  );
+  const canRotate = canTranspose;
+
+  const actionAvail = { place: canPlace, flip: canFlip, transpose: canTranspose, rotate: canRotate };
+
   document.querySelectorAll('.action-btn').forEach(btn => {
     const action = btn.dataset.action;
-    if (action !== 'place') {
-      btn.disabled = !hasMoves || weirdGameOver;
-      btn.style.opacity = (!hasMoves || weirdGameOver) ? '0.5' : '1';
-      btn.style.cursor = (!hasMoves || weirdGameOver) ? 'not-allowed' : 'pointer';
+    const disabled = !actionAvail[action];
+    btn.disabled = disabled;
+    btn.style.opacity = disabled ? '0.5' : '1';
+    btn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+  });
+
+  if (!actionAvail[weirdCurrentAction]) {
+    const fallback = Object.keys(actionAvail).find(a => actionAvail[a]);
+    if (fallback) {
+      weirdCurrentAction = fallback;
+      document.querySelectorAll('.action-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.action === fallback);
+      });
+      document.getElementById('rotate-options').classList.toggle('hide', fallback !== 'rotate');
+      weirdBoard.dataset.action = fallback;
     }
+  }
+
+  // Set per-cell disabled state based on current action
+  document.querySelectorAll('#weird-board .mini-board').forEach((miniBoard, boardIdx) => {
+    const isTarget = !weirdBoardWinners[boardIdx] &&
+      (weirdActiveBoard === null || weirdActiveBoard === boardIdx);
+
+    miniBoard.querySelectorAll('.mini-cell').forEach((cell, cellIdx) => {
+      if (weirdGameOver || weirdBoardWinners[boardIdx] || !isTarget) {
+        cell.disabled = true;
+        return;
+      }
+
+      switch (weirdCurrentAction) {
+        case 'place':
+          cell.disabled = cell.innerText !== '';
+          break;
+        case 'flip':
+          cell.disabled = cell.innerText === '' || weirdFlippedCells.has(`${boardIdx}-${cellIdx}`);
+          break;
+        case 'transpose':
+        case 'rotate':
+          cell.disabled = false;
+          break;
+      }
+    });
   });
 }
 
@@ -686,7 +772,7 @@ function showWeirdWinner(winner, pattern) {
   weirdActiveBoardInfo.textContent = '';
   document.querySelectorAll('#weird-board .mini-cell').forEach(c => c.disabled = true);
   document.querySelectorAll('#weird-board .mini-board').forEach(b => b.classList.remove('active'));
-  
+
   pattern.forEach(idx => {
     const board = document.querySelector(`#weird-board .mini-board[data-board="${idx}"]`);
     board.style.boxShadow = '0 0 0 4px #10b981, 0 0 20px rgba(16, 185, 129, 0.5)';
@@ -712,23 +798,23 @@ function resetWeirdGame() {
   weirdFlippedCells = new Set();
   weirdCurrentAction = 'place';
   weirdRotateDirection = 'cw';
-  weirdMoveCount = 0;
-  
+  weirdBoard.dataset.action = 'place';
+
   document.querySelectorAll('#weird-board .mini-cell').forEach(cell => {
     cell.innerText = '';
     cell.disabled = false;
     cell.classList.remove('x', 'o', 'flipped');
   });
-  
+
   document.querySelectorAll('#weird-board .mini-board').forEach(board => {
     board.classList.remove('won', 'draw', 'active');
     board.removeAttribute('data-winner');
     board.style.boxShadow = '';
   });
-  
+
   weirdMsg.classList.add('hide');
   weirdMsg.classList.remove('winner-msg', 'draw-msg');
-  
+
   // Reset action buttons
   document.querySelectorAll('.action-btn').forEach((b, i) => {
     b.classList.toggle('active', i === 0);
@@ -737,7 +823,7 @@ function resetWeirdGame() {
   document.querySelectorAll('.rotate-opt').forEach((b, i) => {
     b.classList.toggle('active', i === 0);
   });
-  
+
   updateWeirdUI();
 }
 
