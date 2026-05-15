@@ -31,6 +31,14 @@ Forced/free board rules carry over from Ultimate. Flip uses the flipped cell to 
 1. Clone the repo: `git clone https://github.com/mathemynd/classic-games.git`
 2. Open `index.html` in your browser
 
+## Game Logs
+
+All moves and game events are logged to `localStorage`, keyed by hour (`game_log_YYYY-MM-DD-HH`). Each game session has a unique `game_id` so multiple tabs are distinguishable.
+
+Export from the browser console:
+- `GameLogger.exportLogs()` — returns all logs as an array
+- `GameLogger.downloadLogs()` — saves as a JSON file
+
 ## Tests
 
 ```bash

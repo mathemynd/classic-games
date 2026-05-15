@@ -120,6 +120,7 @@ function handleWeirdPlace(boardIdx, cellIdx) {
 
   weirdBoards[boardIdx][cellIdx] = weirdCurrentPlayer;
 
+  GameLogger.move(weirdCurrentPlayer, 'place', boardIdx, cellIdx);
   finishWeirdTurn(boardIdx, cellIdx);
 }
 
@@ -146,6 +147,7 @@ function handleWeirdFlip(boardIdx, cellIdx) {
   weirdBoards[boardIdx][cellIdx] = newVal;
   weirdFlippedCells.add(flipKey);
 
+  GameLogger.move(weirdCurrentPlayer, 'flip', boardIdx, cellIdx);
   finishWeirdTurn(boardIdx, cellIdx);
 }
 
@@ -190,6 +192,7 @@ function handleWeirdTranspose(boardIdx) {
   remapFlippedCells(boardIdx, transposeCellIdx);
   updateWeirdBoardUI(boardIdx);
 
+  GameLogger.move(weirdCurrentPlayer, 'transpose', boardIdx, null);
   finishWeirdTurn(boardIdx, null);
 }
 
@@ -214,6 +217,8 @@ function handleWeirdRotate(boardIdx) {
   weirdBoards[boardIdx] = rotateBoard(weirdBoards[boardIdx], dir);
   remapFlippedCells(boardIdx, c => rotateCellIdx(c, dir));
   updateWeirdBoardUI(boardIdx);
+
+  GameLogger.move(weirdCurrentPlayer, 'rotate_' + dir, boardIdx, null);
   finishWeirdTurn(boardIdx, null);
 }
 
@@ -244,6 +249,7 @@ function checkWeirdMiniBoard(boardIdx) {
       miniBoard.classList.add('won');
       miniBoard.dataset.winner = board[a];
       miniBoard.querySelectorAll('.mini-cell').forEach(cell => cell.disabled = true);
+      GameLogger.boardWon(board[a], boardIdx);
       return;
     }
   }
@@ -253,6 +259,7 @@ function checkWeirdMiniBoard(boardIdx) {
     const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won', 'draw');
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+    GameLogger.boardDraw(boardIdx);
   }
 }
 
@@ -393,6 +400,7 @@ function showWeirdWinner(winner, pattern) {
     const board = document.querySelector(`#weird-board .mini-board[data-board="${idx}"]`);
     board.style.boxShadow = '0 0 0 4px #10b981, 0 0 20px rgba(16, 185, 129, 0.5)';
   });
+  GameLogger.gameWon(winner);
 }
 
 function showWeirdDraw() {
@@ -403,6 +411,7 @@ function showWeirdDraw() {
   weirdActiveBoardInfo.textContent = '';
   document.querySelectorAll('#weird-board .mini-cell').forEach(c => c.disabled = true);
   document.querySelectorAll('#weird-board .mini-board').forEach(b => b.classList.remove('active'));
+  GameLogger.gameDraw();
 }
 
 function resetWeirdGame() {
@@ -442,5 +451,5 @@ function resetWeirdGame() {
   updateWeirdUI();
 }
 
-weirdResetBtn.addEventListener('click', resetWeirdGame);
-weirdNewGameBtn.addEventListener('click', resetWeirdGame);
+weirdResetBtn.addEventListener('click', () => { GameLogger.reset('weird'); resetWeirdGame(); });
+weirdNewGameBtn.addEventListener('click', () => { GameLogger.reset('weird'); resetWeirdGame(); });

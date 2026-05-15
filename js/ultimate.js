@@ -47,11 +47,13 @@ function checkUltimateMiniBoard(boardIdx) {
     miniBoard.classList.add('won');
     miniBoard.dataset.winner = boardWinner;
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+    GameLogger.boardWon(boardWinner, boardIdx);
   } else if (ultimateBoards[boardIdx].every(c => c !== null)) {
     ultimateBoardWinners[boardIdx] = 'draw';
     const miniBoard = document.querySelector(`.mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won', 'draw');
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+    GameLogger.boardDraw(boardIdx);
   }
 }
 
@@ -95,6 +97,7 @@ function handleUltimateClick(boardIdx, cellIdx) {
 
   ultimateBoards[boardIdx][cellIdx] = ultimateCurrentPlayer;
 
+  GameLogger.move(ultimateCurrentPlayer, 'place', boardIdx, cellIdx);
   finishUltimateTurn(boardIdx, cellIdx);
 }
 
@@ -156,6 +159,7 @@ function showUltimateWinner(winner, pattern) {
     const board = document.querySelector(`.mini-board[data-board="${idx}"]`);
     board.style.boxShadow = '0 0 0 4px #10b981, 0 0 20px rgba(16, 185, 129, 0.5)';
   });
+  GameLogger.gameWon(winner);
 }
 
 function showUltimateDraw() {
@@ -166,6 +170,7 @@ function showUltimateDraw() {
   activeBoardInfo.textContent = '';
   document.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
   document.querySelectorAll('.mini-board').forEach(b => b.classList.remove('active'));
+  GameLogger.gameDraw();
 }
 
 function resetUltimateGame() {
@@ -199,5 +204,5 @@ ultimateBackBtn.addEventListener('click', () => {
   resetUltimateGame();
 });
 
-ultimateResetBtn.addEventListener('click', resetUltimateGame);
-ultimateNewGameBtn.addEventListener('click', resetUltimateGame);
+ultimateResetBtn.addEventListener('click', () => { GameLogger.reset('ultimate'); resetUltimateGame(); });
+ultimateNewGameBtn.addEventListener('click', () => { GameLogger.reset('ultimate'); resetUltimateGame(); });

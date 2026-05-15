@@ -23,16 +23,12 @@ function handleClassicClick(idx) {
   const box = classicBoxes[idx];
   if (box.innerText !== '' || box.disabled) return;
 
-  if (classicTurn0) {
-    box.innerText = 'X';
-    box.classList.add('x');
-    classicTurn0 = false;
-  } else {
-    box.innerText = 'O';
-    box.classList.add('o');
-    classicTurn0 = true;
-  }
+  const player = classicTurn0 ? 'X' : 'O';
+  box.innerText = player;
+  box.classList.add(player.toLowerCase());
+  classicTurn0 = !classicTurn0;
   box.disabled = true;
+  GameLogger.move(player, 'place', 0, idx);
   checkClassicWinner();
 }
 
@@ -64,6 +60,7 @@ function showClassicWinner(winner, pattern) {
   classicMsg.classList.add('winner-msg');
   classicBoxes.forEach(box => box.disabled = true);
   pattern.forEach(idx => classicBoxes[idx].classList.add('winner'));
+  GameLogger.gameWon(winner);
 }
 
 function showClassicDraw() {
@@ -71,6 +68,7 @@ function showClassicDraw() {
   classicMsg.classList.remove('hide');
   classicMsg.classList.add('draw-msg');
   classicBoxes.forEach(box => box.disabled = true);
+  GameLogger.gameDraw();
 }
 
 function resetClassicGame() {
@@ -90,5 +88,5 @@ classicBackBtn.addEventListener('click', () => {
   resetClassicGame();
 });
 
-classicResetBtn.addEventListener('click', resetClassicGame);
-classicNewGameBtn.addEventListener('click', resetClassicGame);
+classicResetBtn.addEventListener('click', () => { GameLogger.reset('classic'); resetClassicGame(); });
+classicNewGameBtn.addEventListener('click', () => { GameLogger.reset('classic'); resetClassicGame(); });

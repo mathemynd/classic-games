@@ -7,6 +7,7 @@ document.querySelectorAll('.game-option').forEach(btn => {
   btn.addEventListener('click', () => {
     const game = btn.dataset.game;
     gameSelectScreen.classList.add('hide');
+    GameLogger.startGame(game);
     if (game === 'classic') {
       classicScreen.classList.remove('hide');
       initClassicGame();
