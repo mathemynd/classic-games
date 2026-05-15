@@ -243,12 +243,12 @@ function checkWeirdMiniBoard(boardIdx) {
       const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
       miniBoard.classList.add('won');
       miniBoard.dataset.winner = board[a];
-      miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+      miniBoard.querySelectorAll('.mini-cell').forEach(cell => cell.disabled = true);
       return;
     }
   }
 
-  if (board.every(c => c !== null)) {
+  if (board.every(cell => cell !== null)) {
     weirdBoardWinners[boardIdx] = 'draw';
     const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won', 'draw');
@@ -346,10 +346,7 @@ function updateWeirdCellStates() {
   });
 }
 
-function isBoardValidForAction(boardIdx) {
-  if (weirdBoardWinners[boardIdx]) return false;
-  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) return false;
-
+function boardHasValidAction(boardIdx) {
   const board = weirdBoards[boardIdx];
   switch (weirdCurrentAction) {
     case 'place':
@@ -362,6 +359,12 @@ function isBoardValidForAction(boardIdx) {
     default:
       return true;
   }
+}
+
+function isBoardValidForAction(boardIdx) {
+  if (weirdBoardWinners[boardIdx]) return false;
+  if (weirdActiveBoard !== null && weirdActiveBoard !== boardIdx) return false;
+  return boardHasValidAction(boardIdx);
 }
 
 function updateWeirdUI() {
