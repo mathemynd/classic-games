@@ -45,6 +45,7 @@ const classicWinPatterns = [
 ];
 
 function initClassicGame() {
+  GameLogger.startGame('classic');
   classicBoxes.forEach((box, idx) => {
     box.onclick = () => handleClassicClick(idx);
   });
@@ -65,6 +66,7 @@ function handleClassicClick(idx) {
     classicTurn0 = true;
   }
   box.disabled = true;
+  GameLogger.move(classicTurn0 ? 'O' : 'X', 'place', null, idx);
   checkClassicWinner();
 }
 
@@ -97,6 +99,7 @@ function showClassicWinner(winner, pattern) {
   classicMsg.classList.add('winner-msg');
   classicBoxes.forEach(box => box.disabled = true);
   pattern.forEach(idx => classicBoxes[idx].classList.add('winner'));
+  GameLogger.gameWon(winner);
 }
 
 function showClassicDraw() {
@@ -104,6 +107,7 @@ function showClassicDraw() {
   classicMsg.classList.remove('hide');
   classicMsg.classList.add('draw-msg');
   classicBoxes.forEach(box => box.disabled = true);
+  GameLogger.gameDraw();
 }
 
 function resetClassicGame() {
@@ -117,8 +121,8 @@ function resetClassicGame() {
   classicMsg.classList.remove('winner-msg', 'draw-msg');
 }
 
-classicResetBtn.addEventListener('click', resetClassicGame);
-classicNewGameBtn.addEventListener('click', resetClassicGame);
+classicResetBtn.addEventListener('click', () => { GameLogger.reset('classic'); resetClassicGame(); });
+classicNewGameBtn.addEventListener('click', () => { GameLogger.reset('classic'); resetClassicGame(); });
 
 // ==================== ULTIMATE TIC TAC TOE ====================
 
@@ -135,6 +139,7 @@ const ultimateWinPatterns = [
 ];
 
 function initUltimateGame() {
+  GameLogger.startGame('ultimate');
   // Create 9 mini-boards
   ultimateBoard.innerHTML = '';
   for (let boardIdx = 0; boardIdx < 9; boardIdx++) {
@@ -182,6 +187,7 @@ function handleUltimateClick(boardIdx, cellIdx) {
   cell.disabled = true;
   
   ultimateBoards[boardIdx][cellIdx] = ultimateCurrentPlayer;
+  GameLogger.move(ultimateCurrentPlayer, 'place', boardIdx, cellIdx);
   
   // Check if this mini-board is won
   const boardWinner = checkMiniBoardWinner(boardIdx);
@@ -190,6 +196,7 @@ function handleUltimateClick(boardIdx, cellIdx) {
     const miniBoard = document.querySelector(`.mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won');
     miniBoard.dataset.winner = boardWinner;
+    GameLogger.boardWon(boardWinner, boardIdx);
     
     // Disable all cells in won board
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
@@ -198,6 +205,7 @@ function handleUltimateClick(boardIdx, cellIdx) {
     ultimateBoardWinners[boardIdx] = 'draw';
     const miniBoard = document.querySelector(`.mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won', 'draw');
+    GameLogger.boardDraw(boardIdx);
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
   }
   
@@ -288,6 +296,7 @@ function showUltimateWinner(winner, pattern) {
     const board = document.querySelector(`.mini-board[data-board="${idx}"]`);
     board.style.boxShadow = '0 0 0 4px #10b981, 0 0 20px rgba(16, 185, 129, 0.5)';
   });
+  GameLogger.gameWon(winner);
 }
 
 function showUltimateDraw() {
@@ -298,6 +307,7 @@ function showUltimateDraw() {
   activeBoardInfo.textContent = '';
   document.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
   document.querySelectorAll('.mini-board').forEach(b => b.classList.remove('active'));
+  GameLogger.gameDraw();
 }
 
 function resetUltimateGame() {
@@ -325,8 +335,8 @@ function resetUltimateGame() {
   updateUltimateUI();
 }
 
-ultimateResetBtn.addEventListener('click', resetUltimateGame);
-ultimateNewGameBtn.addEventListener('click', resetUltimateGame);
+ultimateResetBtn.addEventListener('click', () => { GameLogger.reset('ultimate'); resetUltimateGame(); });
+ultimateNewGameBtn.addEventListener('click', () => { GameLogger.reset('ultimate'); resetUltimateGame(); });
 
 // ==================== WEIRD ULTIMATE TIC TAC TOE ====================
 
@@ -394,6 +404,7 @@ document.querySelectorAll('.rotate-opt').forEach(btn => {
 });
 
 function initWeirdGame() {
+  GameLogger.startGame('weird');
   // Create 9 mini-boards
   weirdBoard.innerHTML = '';
   for (let boardIdx = 0; boardIdx < 9; boardIdx++) {
@@ -451,6 +462,7 @@ function handleWeirdPlace(boardIdx, cellIdx) {
   
   weirdBoards[boardIdx][cellIdx] = weirdCurrentPlayer;
   weirdMoveCount++;
+  GameLogger.move(weirdCurrentPlayer, 'place', boardIdx, cellIdx);
   
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
@@ -501,6 +513,7 @@ function handleWeirdFlip(boardIdx, cellIdx) {
   
   weirdBoards[boardIdx][cellIdx] = newVal;
   weirdFlippedCells.add(flipKey);
+  GameLogger.move(weirdCurrentPlayer, 'flip', boardIdx, cellIdx);
   
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
@@ -537,6 +550,7 @@ function handleWeirdTranspose(boardIdx) {
   
   // Update UI
   updateWeirdBoardUI(boardIdx);
+  GameLogger.move(weirdCurrentPlayer, 'transpose', boardIdx, null);
   
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
@@ -578,6 +592,7 @@ function handleWeirdRotate(boardIdx) {
   
   // Update UI
   updateWeirdBoardUI(boardIdx);
+  GameLogger.move(weirdCurrentPlayer, 'rotate_' + weirdRotateDirection, boardIdx, null);
   
   // Check mini-board win
   checkWeirdMiniBoard(boardIdx);
@@ -621,6 +636,7 @@ function checkWeirdMiniBoard(boardIdx) {
       miniBoard.classList.add('won');
       miniBoard.dataset.winner = board[a];
       miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+      GameLogger.boardWon(board[a], boardIdx);
       return;
     }
   }
@@ -630,6 +646,7 @@ function checkWeirdMiniBoard(boardIdx) {
     const miniBoard = document.querySelector(`#weird-board .mini-board[data-board="${boardIdx}"]`);
     miniBoard.classList.add('won', 'draw');
     miniBoard.querySelectorAll('.mini-cell').forEach(c => c.disabled = true);
+    GameLogger.boardDraw(boardIdx);
   }
 }
 
@@ -691,6 +708,7 @@ function showWeirdWinner(winner, pattern) {
     const board = document.querySelector(`#weird-board .mini-board[data-board="${idx}"]`);
     board.style.boxShadow = '0 0 0 4px #10b981, 0 0 20px rgba(16, 185, 129, 0.5)';
   });
+  GameLogger.gameWon(winner);
 }
 
 function showWeirdDraw() {
@@ -701,6 +719,7 @@ function showWeirdDraw() {
   weirdActiveBoardInfo.textContent = '';
   document.querySelectorAll('#weird-board .mini-cell').forEach(c => c.disabled = true);
   document.querySelectorAll('#weird-board .mini-board').forEach(b => b.classList.remove('active'));
+  GameLogger.gameDraw();
 }
 
 function resetWeirdGame() {
@@ -741,5 +760,5 @@ function resetWeirdGame() {
   updateWeirdUI();
 }
 
-weirdResetBtn.addEventListener('click', resetWeirdGame);
-weirdNewGameBtn.addEventListener('click', resetWeirdGame);
+weirdResetBtn.addEventListener('click', () => { GameLogger.reset('weird'); resetWeirdGame(); });
+weirdNewGameBtn.addEventListener('click', () => { GameLogger.reset('weird'); resetWeirdGame(); });
