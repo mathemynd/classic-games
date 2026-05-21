@@ -2,6 +2,7 @@ const gameSelectScreen = document.getElementById('game-select');
 const classicScreen = document.getElementById('classic-screen');
 const ultimateScreen = document.getElementById('ultimate-screen');
 const weirdScreen = document.getElementById('weird-screen');
+const dotsScreen = document.getElementById('dots-screen');
 
 document.querySelectorAll('.game-option').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -17,6 +18,9 @@ document.querySelectorAll('.game-option').forEach(btn => {
     } else if (game === 'weird') {
       weirdScreen.classList.remove('hide');
       initWeirdGame();
+    } else if (game === 'dots') {
+      dotsScreen.classList.remove('hide');
+      initDotsGame();
     }
   });
 });

@@ -36,7 +36,8 @@ h1 {
 
 #msg,
 #ultimate-msg,
-#weird-msg {
+#weird-msg,
+#dots-msg {
   font-size: 1.3rem;
   font-weight: 600;
   font-family: "Fredoka", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -49,7 +50,8 @@ h1 {
 
 #msg.winner-msg,
 #ultimate-msg.winner-msg,
-#weird-msg.winner-msg {
+#weird-msg.winner-msg,
+#dots-msg.winner-msg {
   color: #fff;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
@@ -57,7 +59,8 @@ h1 {
 
 #msg.draw-msg,
 #ultimate-msg.draw-msg,
-#weird-msg.draw-msg {
+#weird-msg.draw-msg,
+#dots-msg.draw-msg {
   color: #fff;
   background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   box-shadow: 0 4px 14px rgba(107, 114, 128, 0.4);
@@ -407,7 +410,10 @@ h1 {
 #ultimate-back-btn,
 #weird-new-game,
 #weird-reset-btn,
-#weird-back-btn {
+#weird-back-btn,
+#dots-new-game,
+#dots-reset-btn,
+#dots-back-btn {
   padding: 0.75rem 2.2rem;
   font-size: 1.05rem;
   font-weight: 500;
@@ -428,7 +434,10 @@ h1 {
 #ultimate-back-btn:hover,
 #weird-new-game:hover,
 #weird-reset-btn:hover,
-#weird-back-btn:hover {
+#weird-back-btn:hover,
+#dots-new-game:hover,
+#dots-reset-btn:hover,
+#dots-back-btn:hover {
   background: #e8e8e8;
   border-color: #666;
 }
@@ -441,7 +450,10 @@ h1 {
 #ultimate-back-btn:active,
 #weird-new-game:active,
 #weird-reset-btn:active,
-#weird-back-btn:active {
+#weird-back-btn:active,
+#dots-new-game:active,
+#dots-reset-btn:active,
+#dots-back-btn:active {
   background: #dcdcdc;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -543,4 +555,148 @@ h1 {
     font-size: 1.15rem;
     padding: 0.6rem 1.8rem;
   }
+}
+
+/* Dots & Squares */
+.dots-board {
+  display: grid;
+  gap: 0;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.dots-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #374151;
+  position: relative;
+  z-index: 2;
+}
+
+.dots-line {
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+  position: relative;
+  z-index: 2;
+}
+
+.dots-board[data-turn="1"] .dots-line:hover:not(:disabled):not(.p1):not(.p2) {
+  background: rgba(220, 38, 38, 0.35);
+}
+
+.dots-board[data-turn="2"] .dots-line:hover:not(:disabled):not(.p1):not(.p2) {
+  background: rgba(37, 99, 235, 0.35);
+}
+
+.dots-line.p1 {
+  background: #dc2626;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
+}
+
+.dots-line.p2 {
+  background: #2563eb;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.dots-hline.p1, .dots-hline.p2 {
+  animation: dots-hline-draw 0.25s ease-out;
+  transform-origin: left center;
+}
+
+.dots-vline.p1, .dots-vline.p2 {
+  animation: dots-vline-draw 0.25s ease-out;
+  transform-origin: center top;
+}
+
+@keyframes dots-hline-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes dots-vline-draw {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.dots-line:disabled {
+  cursor: default;
+}
+
+.dots-line.blocked {
+  background: transparent;
+}
+
+.dots-claimed {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 4px;
+  z-index: 0;
+  animation: dots-square-claim 0.3s ease-out;
+}
+
+.dots-claimed.p1 {
+  background: rgba(220, 38, 38, 0.15);
+  border: 2px solid rgba(220, 38, 38, 0.3);
+}
+
+.dots-claimed.p2 {
+  background: rgba(37, 99, 235, 0.15);
+  border: 2px solid rgba(37, 99, 235, 0.3);
+}
+
+@keyframes dots-square-claim {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dots-scoreboard {
+  display: flex;
+  gap: 2rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-family: "Fredoka", sans-serif;
+}
+
+.dots-score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dots-color-indicator {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.dots-color-indicator.p1 {
+  background: #dc2626;
+}
+
+.dots-color-indicator.p2 {
+  background: #2563eb;
+}
+
+.dots-turn-info {
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: "Fredoka", sans-serif;
+  min-height: 1.5rem;
+}
+
+.dots-turn-info.p1 {
+  color: #dc2626;
+}
+
+.dots-turn-info.p2 {
+  color: #2563eb;
 }
