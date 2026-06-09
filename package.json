@@ -1,0 +1,25 @@
+{
+  "name": "classic-games",
+  "version": "1.0.0",
+  "description": "A collection of Tic-Tac-Toe variants built with vanilla JavaScript, HTML5, and CSS3.",
+  "main": "app.js",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathemynd/classic-games.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mathemynd/classic-games/issues"
+  },
+  "homepage": "https://github.com/mathemynd/classic-games#readme",
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.6"
+  }
+}
